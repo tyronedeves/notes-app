@@ -1,22 +1,44 @@
 import databaseService from "./databaseService";
-
 import { ID } from "react-native-appwrite";
+import { config } from "./appwrite";
 
-// Appwrite database and collection id
+// Use the config from appwrite.js instead of accessing process directly
+const dbId = config.db;
+const colId = config.col.notes;
 
-const dbId = process.EXPO_PUBLIC_APPWRITE_DB_ID
-const colId = process.EXPO_PUBLIC_APPWRITE_COL_NOTES_ID
-
-const  noteService = {
-    //get notes 
-
+const noteService = {
+    // Get notes 
     async getNotes() {
-        const response = await databaseService.listDocuments(dbId, colId )
+        const response = await databaseService.listDocuments(dbId, colId);
         if (response.error) {
-            return {error: response.error}
+            return { error: response.error };
         } 
-        return {data: response}
+        return { data: response.data }; // Access the data property
+    },
+    //ADD NEW NOTES
+    async addNote(text) {
+        if(!text){
+            return {error: 'Note text cannot be empty'}
+        }
+        const data = {
+            text: text,
+            createdAt: new Date().toISOString()
+        }
+        const response = await databaseService.createDocument(dbId,colId,data,ID.unique())
+        if(response?.error) {
+            return {error: response.error}
+        }
+        return {data: response }
+    },
+    //DELETE note
+
+    async deleteNote(id){
+        const response = await databaseService.deleteDocument(dbId,colId,id);
+        if(response?.error) {
+            return{error: response.error}
+        }
+        return{ success: true }
     }
-}
+};
 
 export default noteService;

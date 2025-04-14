@@ -1,44 +1,49 @@
-import { View, Text , StyleSheet, FlatList, TouchableOpacity,Modal, TextInput} from 'react-native'
+import { View, Text, StyleSheet, TouchableOpacity, Modal, TextInput } from 'react-native';
 
-
-const AddNoteModal = ({modalVisibile, setModalVisible,newNote,setNewNote,addNote}) => {
+const AddNoteModal = ({ modalVisibile, setModalVisible, newNote, setNewNote, addNote }) => {
     return (
         <Modal
-        visible={modalVisibile}
-        animationType='slide'
-        transparent
-        onRequestClose={()=>setModalVisible(false)}
+            visible={modalVisibile}
+            animationType='slide'
+            transparent
+            onRequestClose={() => setModalVisible(false)}
         >
-           <View style={styles.modalOverlay}>
-               <View style={styles.modalContent}>
-                   <Text style={styles.modalTitle}>Add a new Note</Text>
-                   <TextInput
-                   style={styles.input}
-                   placeholder='Enter note..'
-                   placeholderTextColor='#aaa'
-                   value={newNote}
-                   onChangeText={setNewNote}
-                   />
-                   <View style={styles.modalButtons}>
-                       <TouchableOpacity style={styles.cancelButton}
-                        onPress={()=>setModalVisible(false)}> 
-                           <Text style={styles.cancelButtonText}>Cancel</Text>
-                       </TouchableOpacity>
-                       <TouchableOpacity style={styles.saveButton} onPress={addNote}> 
-                           <Text style={styles.saveButtonText}>SAVE</Text>
-                       </TouchableOpacity>
-                   </View>
-               </View>
-           </View>
+            <View style={styles.modalOverlay}>
+                <View style={styles.modalContent}>
+                    <Text style={styles.modalTitle}>Add a new Note</Text>
+                    <TextInput
+                        style={styles.input}
+                        placeholder='Enter note..'
+                        placeholderTextColor='#aaa'
+                        value={newNote}
+                        onChangeText={setNewNote}
+                        multiline={true}
+                        numberOfLines={4}
+                    />
+                    <View style={styles.modalButtons}>
+                        <TouchableOpacity 
+                            style={styles.cancelButton}
+                            onPress={() => setModalVisible(false)}
+                        > 
+                            <Text style={styles.cancelButtonText}>Cancel</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity 
+                            style={styles.saveButton} 
+                            onPress={addNote}
+                        > 
+                            <Text style={styles.saveButtonText}>SAVE</Text>
+                        </TouchableOpacity>
+                    </View>
+                </View>
+            </View>
         </Modal>
-    )
-}
-
+    );
+};
 
 const styles = StyleSheet.create({
     modalOverlay: {
         flex: 1,
-        backgroundColor: 'rgba(0,0,0,0.5)',  // Changed from 'rgba(0,0,0.5)' to 'rgba(0,0,0,0.5)'
+        backgroundColor: 'rgba(0,0,0,0.5)',
         justifyContent: 'center',
         alignItems: 'center',
     },
@@ -53,7 +58,6 @@ const styles = StyleSheet.create({
         fontWeight: 'bold',
         marginBottom: 10,
         textAlign: 'center',
-
     },
     input: {
         borderWidth: 1,
@@ -62,13 +66,15 @@ const styles = StyleSheet.create({
         padding: 10,
         fontSize: 16,
         marginBottom: 15,
+        minHeight: 100,
+        textAlignVertical: 'top',
     },
     modalButtons: {
         flexDirection: 'row',
         justifyContent: 'space-between',
     },
     cancelButton: {
-        backgroundColor: '#ccc',  // Changed from '#cccc' to '#ccc'
+        backgroundColor: '#ccc',
         padding: 10,
         borderRadius: 5,
         flex: 1,
@@ -78,7 +84,6 @@ const styles = StyleSheet.create({
     cancelButtonText: {
         fontSize: 16,
         color: '#333'
-
     },
     saveButton: {
         backgroundColor: "#007bff",
@@ -91,5 +96,6 @@ const styles = StyleSheet.create({
         fontSize: 16,
         color: "#fff"
     }
-})
-export default AddNoteModal
+});
+
+export default AddNoteModal;
