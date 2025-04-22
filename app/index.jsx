@@ -1,6 +1,7 @@
 import { Text, View, StyleSheet, Image,TouchableOpacity } from "react-native";
 import PostItImage from "@/assets/images/post-it.png";
 import { useRouter } from "expo-router";
+
 export default function Index() {
   const router = useRouter();
   return (
