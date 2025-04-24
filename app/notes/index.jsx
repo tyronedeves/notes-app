@@ -31,17 +31,25 @@ export default function NotesScreen() {
 
     const fetchNotes = async () => {
         setLoading(true)
-        const response = await noteService.getNotes(user.$id);
+        try {
+            const response = await noteService.getNotes(user.$id);
 
-        if (response.error) {
-            setError(response.error);
-            Alert.alert('Error', response.error)
-        } else {
-            setNotes(response.data)
-            setError(null)
+            if (response.error) {
+                setError(response.error);
+                Alert.alert('Error', response.error)
+            } else {
+                // Make sure notes is an array before setting state
+                const notesData = Array.isArray(response.data) ? response.data : [];
+                setNotes(notesData)
+                setError(null)
+            }
+        } catch (err) {
+            console.error("Error fetching notes:", err);
+            setError("Failed to fetch notes");
+            Alert.alert('Error', "Failed to fetch notes");
+        } finally {
+            setLoading(false)
         }
-
-        setLoading(false)
     }
 
     // Add new Note
@@ -51,17 +59,22 @@ export default function NotesScreen() {
         console.log("Adding note:", newNote); // Debug log
         console.log("User ID:", user.$id); // Debug log
         
-        const response = await noteService.addNote(user.$id, newNote);
-        console.log("Response from addNote:", response); // Debug log
+        try {
+            const response = await noteService.addNote(user.$id, newNote);
+            console.log("Response from addNote:", response); // Debug log
 
-        if (response.error) {
-            Alert.alert("Error", response.error);
-        } else {
-            // Make sure we're accessing the data correctly
-            const newNoteItem = response.data;
-            console.log("New note:", newNoteItem); // Debug log
-            
-            setNotes(prevNotes => [...prevNotes, newNoteItem]);
+            if (response.error) {
+                Alert.alert("Error", response.error);
+            } else {
+                // Make sure we're accessing the data correctly
+                const newNoteItem = response.data;
+                console.log("New note:", newNoteItem); // Debug log
+                
+                setNotes(prevNotes => [...prevNotes, newNoteItem]);
+            }
+        } catch (err) {
+            console.error("Error adding note:", err);
+            Alert.alert("Error", "Failed to add note");
         }
         
         setNewNote('');
@@ -78,11 +91,16 @@ export default function NotesScreen() {
                 text: 'Delete',
                 style: 'destructive',
                 onPress: async () => {
-                    const response = await noteService.deleteNote(id)
-                    if (response.error) {
-                        Alert.alert('Error', response.error)
-                    } else {
-                        setNotes(notes.filter((note) => note.$id !== id))
+                    try {
+                        const response = await noteService.deleteNote(id)
+                        if (response.error) {
+                            Alert.alert('Error', response.error)
+                        } else {
+                            setNotes(notes.filter((note) => note.$id !== id))
+                        }
+                    } catch (err) {
+                        console.error("Error deleting note:", err);
+                        Alert.alert('Error', "Failed to delete note");
                     }
                 }
             }
@@ -96,16 +114,21 @@ export default function NotesScreen() {
             return
         }
         
-        const response = await noteService.updateNote(id, newText)
-        
-        if (response.error) {
-            Alert.alert('Error', response.error)
-        } else {
-            setNotes((prevNotes) => 
-                prevNotes.map((note) => 
-                    note.$id === id ? {...note, text: newText} : note
+        try {
+            const response = await noteService.updateNote(id, newText)
+            
+            if (response.error) {
+                Alert.alert('Error', response.error)
+            } else {
+                setNotes((prevNotes) => 
+                    prevNotes.map((note) => 
+                        note.$id === id ? {...note, text: newText} : note
+                    )
                 )
-            )
+            }
+        } catch (err) {
+            console.error("Error updating note:", err);
+            Alert.alert('Error', "Failed to update note");
         }
     }
 
@@ -116,7 +139,11 @@ export default function NotesScreen() {
             ) : (
                 <>
                     {error && <Text style={styles.errorText}>{error}</Text>}
-                    <NoteList notes={notes} onDelete={deleteNote} onEdit={editNote} />
+
+                    {notes.length === 0 ? (
+                        <Text style={styles.noNotesTexts}>you have no Notes..</Text>
+                    ): (<NoteList notes={notes} onDelete={deleteNote} onEdit={editNote} />) }
+                    
                 </>
             )}
 
@@ -161,5 +188,12 @@ const styles = StyleSheet.create({
         textAlign: 'center',
         marginBottom: 10,
         fontSize: 16
+    },
+    noNotesTexts: {
+        textAlign: 'center',
+        fontSize: 18,
+        fontWeight:'bold',
+        color: '#555',
+        marginTop: 15,
     }
 })

@@ -20,7 +20,7 @@ const noteService = {
             const response = await databaseService.listDocuments(dbId, colId, [
                 Query.equal('user_id', userId)
             ]);
-            return response
+            return response;
         } catch (error) {
             console.log('error fetching notes:', error.message)
             return { data: [], error: error.message }
