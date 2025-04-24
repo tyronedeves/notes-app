@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, Alert, ActivityIndicator } from 'react-native'
+import { View, Text, StyleSheet, TouchableOpacity, Alert, ActivityIndicator } from 'react-native'
 import React from 'react'
 import NoteList from '../../components/Notelist';
 import AddNoteModal from '../../components/AddNoteModal';
@@ -8,12 +8,8 @@ import { useRouter } from "expo-router";
 import { useAuth } from "@/contexts/authContext";
 
 export default function NotesScreen() {
-
     const router = useRouter()
-    const {user, loading:authLoading} = useAuth()
-
-
-
+    const { user, loading: authLoading } = useAuth()
 
     const [notes, setNotes] = useState([]);
     const [modalVisible, setModalVisible] = useState(false);
@@ -21,21 +17,19 @@ export default function NotesScreen() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
-
-    useEffect(()=> {
-        if(!authLoading && !user) {
+    useEffect(() => {
+        if (!authLoading && !user) {
             router.replace('/auth')
         }
-    }, [user,authLoading])
-
+    }, [user, authLoading])
 
     useEffect(() => {
-        if(user){
-        fetchNotes()
+        if (user) {
+            fetchNotes()
         }
     }, [user])
 
-    const fetchNotes = async() => {
+    const fetchNotes = async () => {
         setLoading(true)
         const response = await noteService.getNotes(user.$id);
 
@@ -51,70 +45,85 @@ export default function NotesScreen() {
     }
 
     // Add new Note
-    const addNote = async() => {
-        if(newNote.trim() === '') return;
+    const addNote = async () => {
+        if (newNote.trim() === '') return;
 
-       const response = await noteService.addNote(user.$id,newNote)
+        console.log("Adding note:", newNote); // Debug log
+        console.log("User ID:", user.$id); // Debug log
+        
+        const response = await noteService.addNote(user.$id, newNote);
+        console.log("Response from addNote:", response); // Debug log
 
-       if(response.error) {
-        Alert.alert("Error ", response.error)
-       } else {
-        setNotes([...notes, response.data])
-       }
+        if (response.error) {
+            Alert.alert("Error", response.error);
+        } else {
+            // Make sure we're accessing the data correctly
+            const newNoteItem = response.data;
+            console.log("New note:", newNoteItem); // Debug log
+            
+            setNotes(prevNotes => [...prevNotes, newNoteItem]);
+        }
+        
         setNewNote('');
         setModalVisible(false);
     }
-    // delete note
 
-    const deleteNote = async (id) => {{
-        Alert.alert('Delete Note', 'Are you sure you want to delete this note',[
+    // delete note
+    const deleteNote = async (id) => {
+        Alert.alert('Delete Note', 'Are you sure you want to delete this note', [
             {
-                text: 'cancel',
+                text: 'Cancel',
                 style: 'cancel'
             }, {
                 text: 'Delete',
                 style: 'destructive',
                 onPress: async () => {
                     const response = await noteService.deleteNote(id)
-                    if(response.error) {
+                    if (response.error) {
                         Alert.alert('Error', response.error)
                     } else {
-                        setNotes(notes.filter((note) =>note.$id !== id))
+                        setNotes(notes.filter((note) => note.$id !== id))
                     }
                 }
-                
             }
         ])
-    }}
-    //edit note
-
-    const editNote = async (id,newText) =>{
-       if(!newText.trim() ) {
-        Alert.alert('Error', 'Note text cannot be empty')
-        return
-       }
-       const response =  await noteService.updateNote(id,newText)
-       if(response.error) {
-        Alert.alert('Error', response.error)
-       } else{
-        setNotes((prevNotes) => prevNotes.map((note)=> note.$id ? {...note,text: response.data.text}: note))
-       }
     }
+
+    // edit note
+    const editNote = async (id, newText) => {
+        if (!newText.trim()) {
+            Alert.alert('Error', 'Note text cannot be empty')
+            return
+        }
+        
+        const response = await noteService.updateNote(id, newText)
+        
+        if (response.error) {
+            Alert.alert('Error', response.error)
+        } else {
+            setNotes((prevNotes) => 
+                prevNotes.map((note) => 
+                    note.$id === id ? {...note, text: newText} : note
+                )
+            )
+        }
+    }
+
     return (
         <View style={styles.container}>
-        {loading ? (
-            <ActivityIndicator size='large' color='#007bff'/>
-        ) : (
-            <>
-            {error && <Text style={styles.errorText}>{error}</Text>}
-            <NoteList notes={notes} onDelete={deleteNote} onEdit={(editNote)}/>
-            </>
-        )}
+            {loading ? (
+                <ActivityIndicator size='large' color='#007bff' />
+            ) : (
+                <>
+                    {error && <Text style={styles.errorText}>{error}</Text>}
+                    <NoteList notes={notes} onDelete={deleteNote} onEdit={editNote} />
+                </>
+            )}
 
             <TouchableOpacity style={styles.addButton} onPress={() => setModalVisible(true)}>
                 <Text style={styles.addButtonText}>+ ADD NOTE</Text>
             </TouchableOpacity>
-            {/* MODAL */}
+            
             <AddNoteModal
                 modalVisibile={modalVisible}
                 setModalVisible={setModalVisible}
@@ -124,7 +133,7 @@ export default function NotesScreen() {
             />
         </View>
     )
-} 
+}
 
 const styles = StyleSheet.create({
     container: {
@@ -132,7 +141,6 @@ const styles = StyleSheet.create({
         padding: 20,
         backgroundColor: 'white'
     },
-    
     addButton: {
         position: 'absolute',
         bottom: 20,
