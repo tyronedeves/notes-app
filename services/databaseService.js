@@ -2,11 +2,11 @@ import { database } from "./appwrite";
 
 const databaseService = {
     // List documents
-    async listDocuments(dbId, colId) {
+    async listDocuments(dbId, colId,queries =[]) {
         try {
-            const response = await database.listDocuments(dbId, colId);
+            const response = await database.listDocuments(dbId, colId,queries);
             return { 
-                data: response.documents || [],
+                data: {data:response.documents || [], error:null},
                 error: null
             };
         } catch (error) {

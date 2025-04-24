@@ -1,6 +1,7 @@
 import databaseService from "./databaseService";
-import { ID } from "react-native-appwrite";
+import { ID , Query} from "react-native-appwrite";
 import { config } from "./appwrite";
+
 
 // Use the config from appwrite.js instead of accessing process directly
 const dbId = config.db;
@@ -8,21 +9,33 @@ const colId = config.col.notes;
 
 const noteService = {
     // Get notes 
-    async getNotes() {
-        const response = await databaseService.listDocuments(dbId, colId);
-        if (response.error) {
-            return { error: response.error };
-        } 
-        return { data: response.data }; // Access the data property
+    async getNotes(userId) {
+        if (!userId) {
+            console.error('Error: Missing user id in getNotes()')
+            return {
+                data:[], error:'User ID missing'
+            }
+        }
+
+        try {
+            const response = await databaseService.listDocuments(dbId, colId,[
+                Query.equal('user_id',userId)
+            ]);
+            return response
+        } catch (error) {
+           console.log('error fetching notes:', error.message)
+           return {data: [],error: error.message}
+        }
     },
     //ADD NEW NOTES
-    async addNote(text) {
+    async addNote(text, user_id) {
         if(!text){
             return {error: 'Note text cannot be empty'}
         }
         const data = {
             text: text,
-            createdAt: new Date().toISOString()
+            createdAt: new Date().toISOString(),
+            user_id: user_id
         }
         const response = await databaseService.createDocument(dbId,colId,data,ID.unique())
         if(response?.error) {
